@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Sources Health{% endblock %}
+{% block content %}
+<h1>Sources health</h1>
+{% for s in stats %}
+<section>
+  <h2>{{ s.source.name }}</h2>
+  <p>Page states: {{ s.states }}</p>
+  <table>
+    <tr><th>Run</th><th>OK</th><th>Fail</th><th>Notes</th></tr>
+    {% for r in s.runs %}
+    <tr><td>{{ r.started_at }}</td><td>{{ r.ok_count }}</td><td>{{ r.fail_count }}</td><td>{{ r.notes }}</td></tr>
+    {% endfor %}
+  </table>
+</section>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Overview — MAP Watch{% endblock %}
+{% block content %}
+<h1>Overview</h1>
+<div class="cards">
+  <div class="card"><h3>Tracked SKUs</h3><p class="num">{{ sku_count }}</p></div>
+  <div class="card"><h3>24h Events (pushed)</h3><p class="num">{{ events_24h }}</p></div>
+  <div class="card"><h3>Open MAP Violations</h3><p class="num">{{ map_open }}</p></div>
+  <div class="card"><h3>Noise suppressed (7d)</h3><p class="num">{{ suppressed_week }}</p></div>
+</div>
+<p class="muted">Detected {{ detected }} total change signals; {{ pushed }} pushed alerts after thresholds &amp; confirmation.</p>
+<h2>Source health</h2>
+<table>
+  <tr><th>Source</th><th>Last run</th><th>OK</th><th>Fail</th></tr>
+  {% for h in health %}
+  <tr>
+    <td>{{ h.source.name }}</td>
+    <td>{{ h.last_run.started_at if h.last_run else '—' }}</td>
+    <td>{{ h.last_run.ok_count if h.last_run else 0 }}</td>
+    <td>{{ h.last_run.fail_count if h.last_run else 0 }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

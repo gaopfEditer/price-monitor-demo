@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html><head><title>Sandbox Shop C</title></head>
+<body>
+<h1>Synthetic Shop C (rate limit / challenge demo)</h1>
+<ul>
+{% for item in listings %}
+<li data-sku="{{ item.sku }}"><span class="product-name">{{ item.title }}</span>
+<span class="amount">${{ item.price }}</span></li>
+{% endfor %}
+</ul>
+</body></html>

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}MAP Board{% endblock %}
+{% block content %}
+<h1>MAP board</h1>
+{% for row in rows %}
+<article class="card">
+  <h3>{{ row.product.title if row.product else 'Product' }}</h3>
+  <p>Seller: {{ row.v.seller }} · Observed ${{ '%.2f'|format(row.v.observed_price) }} vs MAP ${{ '%.2f'|format(row.v.map_price) }}</p>
+  <p>Status: {{ row.v.status }} {% if row.v.trap_filtered %}· filtered trap ({{ row.v.trap_reason }}){% endif %}</p>
+  {% if row.v.evidence_path %}<p>Evidence: <code>{{ row.v.evidence_path }}</code></p>{% endif %}
+</article>
+{% endfor %}
+{% endblock %}

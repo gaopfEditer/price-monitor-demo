@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html><head><title>Sandbox Shop A — Static Catalog</title></head>
+<body>
+<h1>Synthetic Shop A (static HTML)</h1>
+<ul class="product-list">
+{% for item in listings %}
+<li class="product" data-sku="{{ item.sku }}" data-gtin="{{ item.gtin }}" data-mpn="{{ item.mpn }}">
+  <span class="title">{{ item.title }}</span>
+  <span class="price">${{ '%.2f'|format(item.price) }}</span>
+  <span class="shipping">${{ '%.2f'|format(item.shipping) }}</span>
+  <span class="stock">{{ 'in stock' if item.in_stock else 'out of stock' }}</span>
+  <span class="pack-size">{{ item.pack_size }}</span>
+</li>
+{% endfor %}
+</ul>
+<nav>{% if page > 1 %}<a href="/shop-a/page/{{ page - 1 }}">Prev</a>{% endif %}
+ Page {{ page }} / {{ total_pages }}
+ {% if page < total_pages %}<a href="/shop-a/page/{{ page + 1 }}">Next</a>{% endif %}</nav>
+</body></html>

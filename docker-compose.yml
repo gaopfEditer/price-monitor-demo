@@ -1,0 +1,30 @@
+services:
+  sandbox:
+    build: ./sandbox
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./sandbox/data:/app/data
+    environment:
+      - SANDBOX_PORT=8001
+
+  app:
+    build: ./app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - sandbox
+    environment:
+      - DATABASE_URL=sqlite:////data/app.db
+      - SANDBOX_BASE_URL=http://sandbox:8001
+      - APP_BASE_URL=http://localhost:8000
+      - DEMO_MODE=1
+      - LLM_API_KEY=
+    volumes:
+      - app-data:/data
+      - ./app/config:/app/config:ro
+      - ./presets:/app/presets:ro
+      - ./scripts:/scripts:ro
+
+volumes:
+  app-data:

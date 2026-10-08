@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Products{% endblock %}
+{% block content %}
+<h1>Tracked products (sample)</h1>
+<ul>
+{% for p in products %}
+<li><a href="/products/{{ p.id }}">{{ p.canonical_sku }} — {{ p.title }}</a></li>
+{% endfor %}
+</ul>
+{% endblock %}

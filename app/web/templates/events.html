@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Events{% endblock %}
+{% block content %}
+<h1>Events feed</h1>
+<p><a href="/events?show_suppressed=1">Show suppressed noise</a> · currently {{ 'showing all' if show_suppressed else 'pushed only' }}</p>
+<table>
+  <tr><th>Type</th><th>Suppressed</th><th>Why</th><th>When</th></tr>
+  {% for e in events %}
+  <tr class="{{ 'muted' if e.suppressed else '' }}">
+    <td>{{ e.event_type }}</td>
+    <td>{{ e.suppressed }}</td>
+    <td><code>{{ e.reason_json }}</code></td>
+    <td>{{ e.created_at }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}
