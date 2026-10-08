@@ -2,8 +2,9 @@
 {% block title %}Match Queue{% endblock %}
 {% block content %}
 <h1>Match review queue</h1>
+<p class="muted">{{ queue_count }} pending review item{{ 's' if queue_count != 1 else '' }}</p>
 {% for row in rows %}
-<div class="compare">
+<div class="compare match-row">
   <div><strong>Listing</strong><br/>{{ row.listing.raw_title }}<br/>pack {{ row.listing.pack_size }}</div>
   <div><strong>Candidate product</strong><br/>{{ row.product.title }}<br/>pack {{ row.product.pack_size }}</div>
   <div><strong>{{ row.m.status }}</strong> · {{ row.m.method }} · conf {{ '%.2f'|format(row.m.confidence) }}<br/>{{ row.m.guard_notes }}</div>

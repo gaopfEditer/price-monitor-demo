@@ -17,6 +17,19 @@ from database import get_db
 from export.exporter import export_csv, export_excel
 from models import Event, Listing, MapViolation, MatchCandidate, Observation, OutboxMessage, Product, Run, Source
 from pipeline import run_all_sources
+from web.kpi import (
+    count_events_24h_pushed,
+    count_events_pushed,
+    count_events_total,
+    count_map_open,
+    count_map_traps_filtered,
+    count_match_queue,
+    count_suppressed_events,
+    count_tracked_skus,
+    query_events,
+    query_map_violations,
+    query_match_queue,
+)
 
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 router = APIRouter()
@@ -46,17 +59,19 @@ def evidence_stub(evidence_id: str):
 
 @router.get("/", response_class=HTMLResponse)
 def overview(request: Request, db: Session = Depends(get_db)):
-    sku_count = db.query(Product).count()
-    events_24h = db.query(Event).filter(Event.created_at >= datetime.utcnow() - timedelta(hours=24), Event.suppressed.is_(False)).count()
-    map_open = db.query(MapViolation).filter(MapViolation.trap_filtered.is_(False), MapViolation.status == "detected").count()
-    suppressed_week = db.query(Event).filter(Event.suppressed.is_(True), Event.created_at >= datetime.utcnow() - timedelta(days=7)).count()
+    sku_count = count_tracked_skus(db)
+    events_24h = count_events_24h_pushed(db)
+    map_open = count_map_open(db)
+    map_traps = count_map_traps_filtered(db)
+    match_queue_n = count_match_queue(db)
+    suppressed_week = count_suppressed_events(db, days=7)
     sources = db.query(Source).all()
     health = []
     for s in sources:
         last_run = db.query(Run).filter_by(source_id=s.id).order_by(desc(Run.started_at)).first()
         health.append({"source": s, "last_run": last_run})
-    pushed = db.query(Event).filter(Event.suppressed.is_(False)).count()
-    detected = db.query(Event).count()
+    pushed = count_events_pushed(db)
+    detected = count_events_total(db)
     return templates.TemplateResponse(
         "overview.html",
         {
@@ -64,6 +79,8 @@ def overview(request: Request, db: Session = Depends(get_db)):
             "sku_count": sku_count,
             "events_24h": events_24h,
             "map_open": map_open,
+            "map_traps": map_traps,
+            "match_queue_n": match_queue_n,
             "suppressed_week": suppressed_week,
             "health": health,
             "pushed": pushed,
@@ -74,8 +91,12 @@ def overview(request: Request, db: Session = Depends(get_db)):
 
 @router.get("/products", response_class=HTMLResponse)
 def products_index(request: Request, db: Session = Depends(get_db)):
-    products = db.query(Product).order_by(Product.canonical_sku).limit(30).all()
-    return templates.TemplateResponse("products.html", {"request": request, "products": products})
+    total = count_tracked_skus(db)
+    products = db.query(Product).order_by(Product.canonical_sku).all()
+    return templates.TemplateResponse(
+        "products.html",
+        {"request": request, "products": products, "total": total},
+    )
 
 
 @router.get("/products/{product_id}", response_class=HTMLResponse)
@@ -94,24 +115,39 @@ def product_detail(product_id: int, request: Request, db: Session = Depends(get_
 
 
 @router.get("/events", response_class=HTMLResponse)
-def events_feed(request: Request, db: Session = Depends(get_db), show_suppressed: int = 0):
-    q = db.query(Event).order_by(desc(Event.created_at))
-    if not show_suppressed:
-        q = q.filter(Event.suppressed.is_(False))
-    events = q.limit(100).all()
+def events_feed(
+    request: Request,
+    db: Session = Depends(get_db),
+    show_suppressed: int = 0,
+    hours: int | None = None,
+    days: int | None = None,
+):
+    q = query_events(db, show_suppressed=bool(show_suppressed), hours=hours, days=days if show_suppressed else None)
+    events = q.limit(500).all()
+    list_count = len(events)
     return templates.TemplateResponse(
         "events.html",
-        {"request": request, "events": events, "show_suppressed": show_suppressed},
+        {
+            "request": request,
+            "events": events,
+            "show_suppressed": show_suppressed,
+            "hours": hours,
+            "days": days,
+            "list_count": list_count,
+        },
     )
 
 
 @router.get("/match-queue", response_class=HTMLResponse)
 def match_queue(request: Request, db: Session = Depends(get_db)):
-    pending = db.query(MatchCandidate).filter(MatchCandidate.status.in_(["pending", "rejected"])).all()
+    pending = query_match_queue(db).all()
     rows = []
     for m in pending:
         rows.append({"m": m, "listing": db.get(Listing, m.listing_id), "product": db.get(Product, m.product_id)})
-    return templates.TemplateResponse("match_queue.html", {"request": request, "rows": rows})
+    return templates.TemplateResponse(
+        "match_queue.html",
+        {"request": request, "rows": rows, "queue_count": len(rows)},
+    )
 
 
 @router.post("/match-queue/{cid}/confirm")
@@ -127,8 +163,10 @@ def match_confirm(cid: int, db: Session = Depends(get_db)):
 
 
 @router.get("/map", response_class=HTMLResponse)
-def map_board(request: Request, db: Session = Depends(get_db)):
-    violations = db.query(MapViolation).order_by(desc(MapViolation.created_at)).limit(50).all()
+def map_board(request: Request, db: Session = Depends(get_db), scope: str | None = None):
+    if scope not in (None, "open", "traps"):
+        scope = None
+    violations = query_map_violations(db, scope=scope).limit(50).all()
     rows = []
     for v in violations:
         rows.append(
@@ -139,7 +177,10 @@ def map_board(request: Request, db: Session = Depends(get_db)):
                 "evidence_id": _evidence_basename(v.evidence_path),
             }
         )
-    return templates.TemplateResponse("map_board.html", {"request": request, "rows": rows})
+    return templates.TemplateResponse(
+        "map_board.html",
+        {"request": request, "rows": rows, "scope": scope, "board_count": len(rows)},
+    )
 
 
 @router.get("/sources", response_class=HTMLResponse)

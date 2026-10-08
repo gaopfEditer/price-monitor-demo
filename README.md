@@ -114,9 +114,10 @@ After `make demo-local`, `data/demo_summary.json` contains:
   "events_total": 3133,
   "events_pushed": 2,
   "events_suppressed": 3131,
-  "map_detected": 7,
-  "map_traps_filtered": 7,
-  "match_rejected": 14
+  "map_detected": 1,
+  "map_traps_filtered": 1,
+  "match_queue": 1,
+  "match_rejected": 1
 }
 ```
 

@@ -3,12 +3,26 @@
 {% block content %}
 <h1>Overview</h1>
 <div class="cards">
-  <div class="card"><h3>Tracked SKUs</h3><p class="num">{{ sku_count }}</p></div>
-  <div class="card"><h3>24h Events (pushed)</h3><p class="num">{{ events_24h }}</p></div>
-  <div class="card"><h3>Open MAP Violations</h3><p class="num">{{ map_open }}</p></div>
-  <div class="card"><h3>Noise suppressed (7d)</h3><p class="num">{{ suppressed_week }}</p></div>
+  <a class="card card-link" href="/products" data-kpi="tracked-skus">
+    <h3>Tracked SKUs</h3><p class="num">{{ sku_count }}</p>
+  </a>
+  <a class="card card-link" href="/events?hours=24" data-kpi="events-24h-pushed">
+    <h3>24h Events (pushed)</h3><p class="num">{{ events_24h }}</p>
+  </a>
+  <a class="card card-link" href="/map?scope=open" data-kpi="map-open">
+    <h3>Open MAP Violations</h3><p class="num">{{ map_open }}</p>
+  </a>
+  <a class="card card-link" href="/map?scope=traps" data-kpi="map-traps">
+    <h3>MAP traps filtered</h3><p class="num">{{ map_traps }}</p>
+  </a>
+  <a class="card card-link" href="/match-queue" data-kpi="match-queue">
+    <h3>Match review queue</h3><p class="num">{{ match_queue_n }}</p>
+  </a>
+  <a class="card card-link" href="/events?show_suppressed=1&amp;days=7" data-kpi="noise-suppressed-7d">
+    <h3>Noise suppressed (7d)</h3><p class="num">{{ suppressed_week }}</p>
+  </a>
 </div>
-<p class="muted">Detected {{ detected }} total change signals; {{ pushed }} pushed alerts after thresholds &amp; confirmation.</p>
+<p class="muted">Detected <a href="/events?show_suppressed=1">{{ detected }}</a> total change signals; <a href="/events">{{ pushed }}</a> pushed alerts after thresholds &amp; confirmation.</p>
 <h2>Source health</h2>
 <table>
   <tr><th>Source</th><th>Last run</th><th>OK</th><th>Fail</th></tr>
@@ -21,4 +35,5 @@
   </tr>
   {% endfor %}
 </table>
+<p class="muted"><a href="/sources">View sources health</a></p>
 {% endblock %}

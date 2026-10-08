@@ -76,14 +76,23 @@ def main() -> int:
     summary_path = ROOT / "data" / "demo_summary.json"
     db = SessionLocal()
     try:
-        from models import Event, MapViolation, MatchCandidate
+        from models import MatchCandidate
+        from web.kpi import (
+            count_events_pushed,
+            count_events_total,
+            count_map_open,
+            count_map_traps_filtered,
+            count_match_queue,
+            count_suppressed_events,
+        )
 
         summary = {
-            "events_total": db.query(Event).count(),
-            "events_pushed": db.query(Event).filter_by(suppressed=False).count(),
-            "events_suppressed": db.query(Event).filter_by(suppressed=True).count(),
-            "map_detected": db.query(MapViolation).filter_by(trap_filtered=False, status="detected").count(),
-            "map_traps_filtered": db.query(MapViolation).filter_by(trap_filtered=True).count(),
+            "events_total": count_events_total(db),
+            "events_pushed": count_events_pushed(db),
+            "events_suppressed": count_suppressed_events(db),
+            "map_detected": count_map_open(db),
+            "map_traps_filtered": count_map_traps_filtered(db),
+            "match_queue": count_match_queue(db),
             "match_rejected": db.query(MatchCandidate).filter_by(status="rejected").count(),
         }
         summary_path.write_text(json.dumps(summary, indent=2))

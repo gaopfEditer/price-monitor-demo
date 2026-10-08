@@ -2,12 +2,19 @@
 {% block title %}MAP Board{% endblock %}
 {% block content %}
 <h1>MAP board</h1>
+<p class="muted">
+  Showing {{ board_count }} violation{{ 's' if board_count != 1 else '' }}
+  {% if scope == 'open' %}(open, non-trap){% elif scope == 'traps' %}(trap-filtered){% else %}(all){% endif %}
+  · <a href="/map?scope=open">Open only</a> · <a href="/map?scope=traps">Traps only</a> · <a href="/map">All</a>
+</p>
 {% for row in rows %}
-<article class="card">
+<article class="card map-row" data-map-open="{{ '1' if row.v.status == 'detected' and not row.v.trap_filtered else '0' }}" data-map-trap="{{ '1' if row.v.trap_filtered else '0' }}">
   <h3>{{ row.product.title if row.product else 'Product' }}</h3>
   <p>Seller: {{ row.v.seller }} · Observed ${{ '%.2f'|format(row.v.observed_price) }} vs MAP ${{ '%.2f'|format(row.v.map_price) }}</p>
   <p>Status: {{ row.v.status }} {% if row.v.trap_filtered %}· filtered trap ({{ row.v.trap_reason }}){% endif %}</p>
   {% if row.evidence_id %}<p>Evidence: <a href="/evidence/{{ row.evidence_id }}">{{ row.evidence_id }}</a></p>{% endif %}
 </article>
+{% else %}
+<p>No MAP violations in this view.</p>
 {% endfor %}
 {% endblock %}

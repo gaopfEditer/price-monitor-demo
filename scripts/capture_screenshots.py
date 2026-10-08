@@ -33,7 +33,11 @@ def ensure_server() -> subprocess.Popen | None:
     except Exception:
         env = os.environ.copy()
         env["PYTHONPATH"] = str(ROOT / "app")
-        env.setdefault("DATABASE_URL", f"sqlite:///{ROOT / 'data' / 'app.db'}")
+        demo_db = ROOT / "data" / "demo_readonly.db"
+        default_db = demo_db if demo_db.is_file() else ROOT / "data" / "app.db"
+        env.setdefault("DATABASE_URL", f"sqlite:///{default_db.resolve()}")
+        if default_db == demo_db:
+            env.setdefault("READONLY", "1")
         proc = subprocess.Popen(
             [sys.executable, "-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", "8000"],
             cwd=str(ROOT / "app"),
@@ -70,7 +74,9 @@ def main() -> None:
                 page.goto(BASE + path, wait_until="networkidle")
                 page.screenshot(path=str(OUT / f"{name}.png"), full_page=True)
             # attempt product detail via DB
-            env_db = os.getenv("DATABASE_URL", f"sqlite:///{ROOT / 'data' / 'app.db'}")
+            demo_db = ROOT / "data" / "demo_readonly.db"
+            default_db = demo_db if demo_db.is_file() else ROOT / "data" / "app.db"
+            env_db = os.getenv("DATABASE_URL", f"sqlite:///{default_db}")
             sys.path.insert(0, str(ROOT / "app"))
             from sqlalchemy import create_engine
             from sqlalchemy.orm import sessionmaker

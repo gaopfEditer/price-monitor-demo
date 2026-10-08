@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Products{% endblock %}
 {% block content %}
-<h1>Tracked products (sample)</h1>
+<h1>Tracked products</h1>
+<p class="muted">{{ total }} SKU{{ 's' if total != 1 else '' }} in catalog</p>
 <ul>
 {% for p in products %}
 <li><a href="/products/{{ p.id }}">{{ p.canonical_sku }} — {{ p.title }}</a></li>

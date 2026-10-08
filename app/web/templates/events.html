@@ -2,7 +2,16 @@
 {% block title %}Events{% endblock %}
 {% block content %}
 <h1>Events feed</h1>
-<p><a href="/events?show_suppressed=1">Show suppressed noise</a> · currently {{ 'showing all' if show_suppressed else 'pushed only' }}</p>
+<p>
+  {% if hours %}Last {{ hours }}h pushed events{% elif show_suppressed and days %}Suppressed noise (last {{ days }}d){% elif show_suppressed %}Suppressed noise{% else %}Pushed alerts{% endif %}
+  · showing {{ list_count }} row{{ 's' if list_count != 1 else '' }}
+</p>
+<p>
+  <a href="/events">Pushed only</a> ·
+  <a href="/events?hours=24">24h pushed</a> ·
+  <a href="/events?show_suppressed=1">All suppressed</a> ·
+  <a href="/events?show_suppressed=1&amp;days=7">Suppressed (7d)</a>
+</p>
 <table>
   <tr><th>Type</th><th>Suppressed</th><th>Why</th><th>When</th></tr>
   {% for e in events %}

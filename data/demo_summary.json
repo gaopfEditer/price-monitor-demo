@@ -4,5 +4,6 @@
   "events_suppressed": 3131,
   "map_detected": 1,
   "map_traps_filtered": 1,
+  "match_queue": 1,
   "match_rejected": 1
 }
