@@ -168,16 +168,24 @@ def run_source(db: Session, source: Source) -> Run:
             if m.accepted and m.product_id:
                 listing.product_id = m.product_id
             elif m.product_id and not m.accepted:
-                db.add(
-                    MatchCandidate(
-                        listing_id=listing.id,
-                        product_id=m.product_id,
-                        method=m.method,
-                        confidence=m.confidence,
-                        guard_notes=m.guard_notes,
-                        status="rejected" if m.guard_notes else "pending",
-                    )
+                status = "rejected" if m.guard_notes else "pending"
+                existing_match = (
+                    db.query(MatchCandidate)
+                    .filter_by(listing_id=listing.id, product_id=m.product_id)
+                    .filter(MatchCandidate.status.in_(["pending", "rejected"]))
+                    .first()
                 )
+                if not existing_match:
+                    db.add(
+                        MatchCandidate(
+                            listing_id=listing.id,
+                            product_id=m.product_id,
+                            method=m.method,
+                            confidence=m.confidence,
+                            guard_notes=m.guard_notes,
+                            status=status,
+                        )
+                    )
             db.commit()
 
         price = row.get("price")
@@ -311,33 +319,85 @@ def _process_price_and_map(db: Session, listing: Listing, obs: Observation) -> N
             required_streak=MAP_CONFIRM_STREAK,
         )
         if ev.filtered_trap:
-            db.add(
-                MapViolation(
-                    listing_id=listing.id,
-                    product_id=listing.product_id,
-                    status="filtered",
-                    observed_price=ev.compare_price,
-                    map_price=map_price,
-                    seller=listing.seller,
-                    trap_filtered=True,
-                    trap_reason=ev.trap_reason,
-                )
+            _upsert_map_violation(
+                db,
+                listing_id=listing.id,
+                product_id=listing.product_id,
+                status="filtered",
+                observed_price=ev.compare_price,
+                map_price=map_price,
+                seller=listing.seller,
+                trap_filtered=True,
+                trap_reason=ev.trap_reason,
+                evidence_path="",
             )
         elif ev.violation and not is_authorized_seller(listing.seller, AUTHORIZED_SELLERS):
-            evidence = _write_evidence_stub(listing, obs)
-            db.add(
-                MapViolation(
-                    listing_id=listing.id,
-                    product_id=listing.product_id,
-                    status="detected",
-                    observed_price=ev.compare_price,
-                    map_price=map_price,
-                    seller=listing.seller,
-                    evidence_path=str(evidence),
-                    trap_filtered=False,
-                )
+            evidence_id = _write_evidence_stub(listing, obs)
+            created = _upsert_map_violation(
+                db,
+                listing_id=listing.id,
+                product_id=listing.product_id,
+                status="detected",
+                observed_price=ev.compare_price,
+                map_price=map_price,
+                seller=listing.seller,
+                trap_filtered=False,
+                trap_reason="",
+                evidence_path=evidence_id,
             )
-            enqueue(db, "slack", "MAP violation detected", json.dumps(ev.reason))
+            if created:
+                enqueue(db, "slack", "MAP violation detected", json.dumps(ev.reason))
+
+
+def _upsert_map_violation(
+    db: Session,
+    *,
+    listing_id: int,
+    product_id: int,
+    status: str,
+    observed_price: float,
+    map_price: float,
+    seller: str,
+    trap_filtered: bool,
+    trap_reason: str,
+    evidence_path: str,
+) -> bool:
+    """Record one open MAP row per listing + trap class; returns True if newly created."""
+    existing = (
+        db.query(MapViolation)
+        .filter_by(
+            listing_id=listing_id,
+            product_id=product_id,
+            status=status,
+            trap_filtered=trap_filtered,
+        )
+        .order_by(desc(MapViolation.created_at))
+        .first()
+    )
+    if existing:
+        existing.observed_price = observed_price
+        existing.map_price = map_price
+        existing.seller = seller
+        existing.trap_reason = trap_reason or existing.trap_reason
+        if evidence_path and not existing.evidence_path:
+            existing.evidence_path = evidence_path
+        db.commit()
+        return False
+    db.add(
+        MapViolation(
+            listing_id=listing_id,
+            product_id=product_id,
+            status=status,
+            observed_price=observed_price,
+            map_price=map_price,
+            seller=seller,
+            evidence_path=evidence_path,
+            trap_filtered=trap_filtered,
+            trap_reason=trap_reason,
+        )
+    )
+    db.commit()
+    return True
 
 
 def _count_below_map_streak(history: list[Observation], map_price: float, use_landed: bool) -> int:
@@ -353,15 +413,17 @@ def _count_below_map_streak(history: list[Observation], map_price: float, use_la
     return streak
 
 
-def _write_evidence_stub(listing: Listing, obs: Observation) -> Path:
+def _write_evidence_stub(listing: Listing, obs: Observation) -> str:
+    """Write HTML stub under EVIDENCE_DIR; return relative id (filename only) for storage/display."""
     EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
-    path = EVIDENCE_DIR / f"map_{listing.id}_{int(obs.observed_at.timestamp())}.html"
+    evidence_id = f"map_{listing.id}.html"
+    path = EVIDENCE_DIR / evidence_id
     path.write_text(
         f"<html><body><h1>Synthetic evidence snapshot</h1>"
         f"<p>Seller: {listing.seller}</p><p>Price: {obs.price}</p>"
         f"<p>URL: {listing.url}</p></body></html>"
     )
-    return path
+    return evidence_id
 
 
 def run_all_sources(db: Session) -> list[Run]:

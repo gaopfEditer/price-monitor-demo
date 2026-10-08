@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -19,6 +20,8 @@ app.include_router(router)
 
 @app.on_event("startup")
 def startup():
+    if os.getenv("READONLY", "").strip() in {"1", "true", "yes"}:
+        return
     db = SessionLocal()
     try:
         init_schema(db)

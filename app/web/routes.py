@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, Response
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
@@ -12,7 +12,7 @@ TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
 from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
 
-from config import CONFIG_DIR
+from config import CONFIG_DIR, EVIDENCE_DIR
 from database import get_db
 from export.exporter import export_csv, export_excel
 from models import Event, Listing, MapViolation, MatchCandidate, Observation, OutboxMessage, Product, Run, Source
@@ -20,6 +20,28 @@ from pipeline import run_all_sources
 
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 router = APIRouter()
+
+ROOT = Path(__file__).resolve().parent.parent.parent
+
+
+def _evidence_basename(stored: str) -> str:
+    if not stored:
+        return ""
+    name = Path(stored).name
+    if name != stored and ("/" in stored or stored.startswith("/")):
+        return name
+    return stored
+
+
+@router.get("/evidence/{evidence_id}", response_class=HTMLResponse)
+def evidence_stub(evidence_id: str):
+    if not evidence_id or evidence_id != Path(evidence_id).name or ".." in evidence_id:
+        raise HTTPException(status_code=404, detail="Not found")
+    for base in (EVIDENCE_DIR, ROOT / "data" / "evidence"):
+        path = base / evidence_id
+        if path.is_file():
+            return HTMLResponse(path.read_text())
+    raise HTTPException(status_code=404, detail="Not found")
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -109,7 +131,14 @@ def map_board(request: Request, db: Session = Depends(get_db)):
     violations = db.query(MapViolation).order_by(desc(MapViolation.created_at)).limit(50).all()
     rows = []
     for v in violations:
-        rows.append({"v": v, "listing": db.get(Listing, v.listing_id), "product": db.get(Product, v.product_id)})
+        rows.append(
+            {
+                "v": v,
+                "listing": db.get(Listing, v.listing_id),
+                "product": db.get(Product, v.product_id),
+                "evidence_id": _evidence_basename(v.evidence_path),
+            }
+        )
     return templates.TemplateResponse("map_board.html", {"request": request, "rows": rows})
 
 

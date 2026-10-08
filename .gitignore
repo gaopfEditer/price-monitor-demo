@@ -4,6 +4,7 @@ __pycache__/
 .pytest_cache/
 data/app.db
 data/snapshots/
-data/evidence/
+data/evidence/*
+!data/evidence/.gitkeep
 *.egg-info/
 .env
