@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Rules & Export{% endblock %}
+{% block content %}
+<h1>Rules &amp; export</h1>
+<form method="post" action="/rules/save">
+  <textarea name="content" rows="14" style="width:100%">{{ rules_text }}</textarea>
+  <button type="submit">Save rules YAML</button>
+</form>
+<p><a href="/export/csv">Download CSV</a> · <a href="/export/excel">Download Excel (multi-sheet)</a></p>
+<h2>Notification outbox (demo mode)</h2>
+<ul>{% for m in outbox %}<li>[{{ m.channel }}] {{ m.subject }} — {{ m.body[:120] }}…</li>{% endfor %}</ul>
+{% endblock %}

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>{% block title %}Retail Price &amp; MAP Watch{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">Retail Price &amp; MAP Watch <span class="tag">Synthetic Sandbox Demo</span></div>
+  <nav>
+    <a href="/">Overview</a>
+    <a href="/products">Products</a>
+    <a href="/events">Events</a>
+    <a href="/match-queue">Match Queue</a>
+    <a href="/map">MAP Board</a>
+    <a href="/sources">Sources Health</a>
+    <a href="/rules">Rules &amp; Export</a>
+  </nav>
+</header>
+<main class="container">
+{% block content %}{% endblock %}
+</main>
+<footer>Synthetic retailers only — offline demo data, not real prices or stores.</footer>
+</body>
+</html>

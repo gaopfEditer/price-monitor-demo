@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html><head><title>Shop D v1</title></head>
+<body>
+<h1>Synthetic Shop D (DOM v1 — revised selectors)</h1>
+{% for item in listings %}
+<article data-product-sku="{{ item.sku }}">
+  <header>{{ item.title }}</header>
+  <data class="price-tag" value="{{ item.price }}">${{ item.price }}</data>
+  <data class="stock-flag" value="{{ 'yes' if item.in_stock else 'no' }}"></data>
+</article>
+{% endfor %}
+</body></html>

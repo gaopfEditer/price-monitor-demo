@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ product.title }}{% endblock %}
+{% block content %}
+<h1>{{ product.title }}</h1>
+<p>GTIN {{ product.gtin }} · MAP ${{ '%.2f'|format(product.map_price or 0) }}</p>
+{% for s in series %}
+<section>
+  <h3>{{ s.listing.seller }} ({{ s.listing.condition }})</h3>
+  <canvas id="chart-{{ s.listing.id }}" height="120"></canvas>
+  <script>
+    new Chart(document.getElementById('chart-{{ s.listing.id }}'), {
+      type: 'line',
+      data: {
+        labels: [{% for o in s.observations %}'{{ o.observed_at.isoformat() }}'{% if not loop.last %},{% endif %}{% endfor %}],
+        datasets: [{ label: 'Price', data: [{% for o in s.observations %}{{ o.price or 'null' }}{% if not loop.last %},{% endif %}{% endfor %}], borderColor: '#2563eb'}]
+      },
+      options: { scales: { y: { beginAtZero: false } } }
+    });
+  </script>
+</section>
+{% endfor %}
+<h3>Recent events</h3>
+<ul>{% for e in events %}<li>{{ e.event_type }} {% if e.suppressed %}(suppressed){% endif %} — {{ e.reason_json }}</li>{% endfor %}</ul>
+{% endblock %}

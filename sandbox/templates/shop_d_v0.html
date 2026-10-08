@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html><head><title>Shop D v0</title></head>
+<body>
+<h1>Synthetic Shop D (DOM v0)</h1>
+{% for item in listings %}
+<div class="item" data-id="{{ item.sku }}">
+  <h2 class="name">{{ item.title }}</h2>
+  <p class="cost">${{ item.price }}</p>
+  <p class="availability">{{ item.in_stock }}</p>
+</div>
+{% endfor %}
+</body></html>

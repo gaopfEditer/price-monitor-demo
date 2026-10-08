@@ -1,0 +1,215 @@
+{
+  "days": [
+    {
+      "day": 1,
+      "changes": [
+        {
+          "target": "shop-a",
+          "sku": "SKU-001",
+          "mode": "jitter_cents",
+          "cents": 2
+        }
+      ],
+      "promos": [],
+      "flags": []
+    },
+    {
+      "day": 2,
+      "changes": [
+        {
+          "target": "shop-a",
+          "sku": "SKU-001",
+          "mode": "jitter_cents",
+          "cents": -2
+        }
+      ],
+      "promos": [],
+      "flags": []
+    },
+    {
+      "day": 3,
+      "changes": [
+        {
+          "target": "shop-a",
+          "sku": "SKU-002",
+          "mode": "set_price",
+          "price": 349.99,
+          "was": 429.99
+        }
+      ],
+      "promos": [],
+      "flags": []
+    },
+    {
+      "day": 4,
+      "changes": [],
+      "promos": [
+        {
+          "target": "shop-b",
+          "sku": "SKU-003",
+          "mode": "flash",
+          "hours": 24,
+          "discount_pct": 15
+        }
+      ],
+      "flags": [
+        {
+          "target": "shop-d",
+          "mode": "dom_revision",
+          "version": 1
+        }
+      ]
+    },
+    {
+      "day": 5,
+      "changes": [],
+      "promos": [
+        {
+          "target": "shop-b",
+          "sku": "SKU-003",
+          "mode": "flash_end"
+        }
+      ],
+      "flags": []
+    },
+    {
+      "day": 6,
+      "changes": [],
+      "promos": [],
+      "flags": [
+        {
+          "target": "shop-c",
+          "mode": "challenge_burst",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "day": 7,
+      "changes": [
+        {
+          "target": "market-x",
+          "sku": "SKU-005",
+          "mode": "map_breach",
+          "seller": "Unauthorized Outlet 7"
+        }
+      ],
+      "promos": [],
+      "flags": []
+    },
+    {
+      "day": 8,
+      "changes": [
+        {
+          "target": "market-x",
+          "sku": "SKU-006",
+          "mode": "used_listing",
+          "price": 199.99,
+          "seller": "SecondCup Resale"
+        }
+      ],
+      "promos": [],
+      "flags": [
+        {
+          "target": "shop-d",
+          "mode": "dom_revision",
+          "version": 2
+        }
+      ]
+    },
+    {
+      "day": 9,
+      "changes": [
+        {
+          "target": "market-x",
+          "sku": "SKU-007",
+          "mode": "low_listing_high_shipping",
+          "price": 399.0,
+          "shipping": 89.0,
+          "seller": "Budget Beans LLC"
+        }
+      ],
+      "promos": [],
+      "flags": []
+    },
+    {
+      "day": 10,
+      "changes": [
+        {
+          "target": "shop-d",
+          "sku": "SKU-008",
+          "mode": "out_of_stock"
+        }
+      ],
+      "promos": [],
+      "flags": []
+    },
+    {
+      "day": 11,
+      "changes": [
+        {
+          "target": "shop-d",
+          "sku": "SKU-008",
+          "mode": "in_stock"
+        }
+      ],
+      "promos": [],
+      "flags": []
+    },
+    {
+      "day": 12,
+      "changes": [
+        {
+          "target": "shop-a",
+          "sku": "SKU-009",
+          "mode": "delisted"
+        }
+      ],
+      "promos": [],
+      "flags": [
+        {
+          "target": "shop-d",
+          "mode": "dom_revision",
+          "version": 3
+        }
+      ]
+    },
+    {
+      "day": 13,
+      "changes": [
+        {
+          "target": "shop-a",
+          "sku": "SKU-009",
+          "mode": "relisted"
+        }
+      ],
+      "promos": [],
+      "flags": []
+    },
+    {
+      "day": 14,
+      "changes": [
+        {
+          "target": "shop-a",
+          "sku": "SKU-010",
+          "mode": "clearance_price",
+          "price": 129.91
+        }
+      ],
+      "promos": [],
+      "flags": []
+    }
+  ],
+  "demo_skus": {
+    "jitter": "SKU-001",
+    "real_drop": "SKU-002",
+    "flash_sale": "SKU-003",
+    "pack_trap": "SKU-004",
+    "map_violation": "SKU-005",
+    "map_used_trap": "SKU-006",
+    "map_shipping_trap": "SKU-007",
+    "oos_restock": "SKU-008",
+    "delist_relist": "SKU-009",
+    "clearance_ends_in_1": "SKU-010"
+  }
+}

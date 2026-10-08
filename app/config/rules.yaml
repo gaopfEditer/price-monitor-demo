@@ -1,0 +1,23 @@
+thresholds:
+  price_abs_min_usd: 1.0
+  price_pct_min: 3.0
+  confirm_streak: 2
+  cooldown_hours: 6
+alerts:
+  instant:
+    - map_violation
+    - price_drop_pct_above: 10
+  digest:
+    - price_rise
+    - back_in_stock
+rules:
+  clearance_price_pattern: "ends_in_x1"
+  suggested_price:
+    discount_pct: 5
+    respect_map: true
+map:
+  use_landed_price: false
+  exclude_conditions: [used, refurbished]
+  authorized_seller_aliases:
+    - Authorized Demo Dealer
+    - Shop A
